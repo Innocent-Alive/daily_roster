@@ -25,12 +25,12 @@ export const format12Hour = (timeStr) => {
 };
 
 /**
- * List of standard 12-hour options for easy selection dropdowns (every 30 mins)
+ * List of standard 12-hour options for easy selection dropdowns (every 15 mins)
  */
 export const generate12HourOptions = () => {
   const options = [];
   for (let h = 0; h < 24; h++) {
-    for (let m = 0; m < 60; m += 30) {
+    for (let m = 0; m < 60; m += 15) {
       const hh24 = h < 10 ? `0${h}` : `${h}`;
       const mm = m < 10 ? `0${m}` : `${m}`;
       options.push(format12Hour(`${hh24}:${mm}`));

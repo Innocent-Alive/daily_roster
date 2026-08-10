@@ -46,7 +46,7 @@ import API from '../api/axiosInstance';
 import { useNotification } from '../context/NotificationContext';
 import { generateDutyRosterPdf } from '../utils/pdfGenerator';
 import LoadingSkeleton from '../components/LoadingSkeleton';
-import { format12Hour } from '../utils/timeFormat';
+import { format12Hour, generate12HourOptions } from '../utils/timeFormat';
 
 export default function DutyRoster() {
   const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
@@ -56,6 +56,8 @@ export default function DutyRoster() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const timeOptions = React.useMemo(() => generate12HourOptions(), []);
 
   // Filters & Mobile Toggle
   const [searchQuery, setSearchQuery] = useState('');
@@ -553,26 +555,46 @@ export default function DutyRoster() {
                       {/* Timings */}
                       <Grid container spacing={1.5} sx={{ width: '100%', m: 0 }}>
                         <Grid item xs={6} sx={{ pl: '0!important' }}>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="In Time"
-                            placeholder="07:00 AM"
-                            value={item.inTime ? format12Hour(item.inTime) : ''}
-                            disabled={isOffOrAbsent}
-                            onChange={(e) => handleFieldChange(empId, 'inTime', e.target.value)}
-                          />
+                          <FormControl fullWidth size="small" disabled={isOffOrAbsent}>
+                            <InputLabel shrink>In Time</InputLabel>
+                            <Select
+                              value={item.inTime ? format12Hour(item.inTime) : ''}
+                              label="In Time"
+                              onChange={(e) => handleFieldChange(empId, 'inTime', e.target.value)}
+                              MenuProps={{ PaperProps: { sx: { maxHeight: 220 } } }}
+                            >
+                              {(() => {
+                                const formatted = item.inTime ? format12Hour(item.inTime) : '';
+                                const opts = formatted && !timeOptions.includes(formatted) ? [formatted, ...timeOptions] : timeOptions;
+                                return opts.map((t) => (
+                                  <MenuItem key={t} value={t}>
+                                    {t}
+                                  </MenuItem>
+                                ));
+                              })()}
+                            </Select>
+                          </FormControl>
                         </Grid>
                         <Grid item xs={6} sx={{ pr: '0!important' }}>
-                          <TextField
-                            fullWidth
-                            size="small"
-                            label="Out Time"
-                            placeholder="03:30 PM"
-                            value={item.outTime ? format12Hour(item.outTime) : ''}
-                            disabled={isOffOrAbsent}
-                            onChange={(e) => handleFieldChange(empId, 'outTime', e.target.value)}
-                          />
+                          <FormControl fullWidth size="small" disabled={isOffOrAbsent}>
+                            <InputLabel shrink>Out Time</InputLabel>
+                            <Select
+                              value={item.outTime ? format12Hour(item.outTime) : ''}
+                              label="Out Time"
+                              onChange={(e) => handleFieldChange(empId, 'outTime', e.target.value)}
+                              MenuProps={{ PaperProps: { sx: { maxHeight: 220 } } }}
+                            >
+                              {(() => {
+                                const formatted = item.outTime ? format12Hour(item.outTime) : '';
+                                const opts = formatted && !timeOptions.includes(formatted) ? [formatted, ...timeOptions] : timeOptions;
+                                return opts.map((t) => (
+                                  <MenuItem key={t} value={t}>
+                                    {t}
+                                  </MenuItem>
+                                ));
+                              })()}
+                            </Select>
+                          </FormControl>
                         </Grid>
                       </Grid>
 
@@ -679,24 +701,44 @@ export default function DutyRoster() {
                       </Select>
                     </td>
                     <td style={{ padding: '12px' }}>
-                      <TextField
+                      <Select
                         size="small"
                         disabled={isOffOrAbsent}
-                        placeholder="07:00 AM"
                         value={item.inTime ? format12Hour(item.inTime) : ''}
                         onChange={(e) => handleFieldChange(empId, 'inTime', e.target.value)}
-                        sx={{ width: 110 }}
-                      />
+                        sx={{ minWidth: 120, borderRadius: 2 }}
+                        MenuProps={{ PaperProps: { sx: { maxHeight: 220 } } }}
+                      >
+                        {(() => {
+                          const formatted = item.inTime ? format12Hour(item.inTime) : '';
+                          const opts = formatted && !timeOptions.includes(formatted) ? [formatted, ...timeOptions] : timeOptions;
+                          return opts.map((t) => (
+                            <MenuItem key={t} value={t}>
+                              {t}
+                            </MenuItem>
+                          ));
+                        })()}
+                      </Select>
                     </td>
                     <td style={{ padding: '12px' }}>
-                      <TextField
+                      <Select
                         size="small"
                         disabled={isOffOrAbsent}
-                        placeholder="03:30 PM"
                         value={item.outTime ? format12Hour(item.outTime) : ''}
                         onChange={(e) => handleFieldChange(empId, 'outTime', e.target.value)}
-                        sx={{ width: 110 }}
-                      />
+                        sx={{ minWidth: 120, borderRadius: 2 }}
+                        MenuProps={{ PaperProps: { sx: { maxHeight: 220 } } }}
+                      >
+                        {(() => {
+                          const formatted = item.outTime ? format12Hour(item.outTime) : '';
+                          const opts = formatted && !timeOptions.includes(formatted) ? [formatted, ...timeOptions] : timeOptions;
+                          return opts.map((t) => (
+                            <MenuItem key={t} value={t}>
+                              {t}
+                            </MenuItem>
+                          ));
+                        })()}
+                      </Select>
                     </td>
                     <td style={{ padding: '12px' }}>
                       <TextField

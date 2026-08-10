@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -17,19 +16,25 @@ import {
   DialogContent,
   DialogActions,
   Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Add, Edit, Delete, AccessTime } from '@mui/icons-material';
 import API from '../api/axiosInstance';
 import { useNotification } from '../context/NotificationContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 import LoadingSkeleton from '../components/LoadingSkeleton';
-import { format12Hour } from '../utils/timeFormat';
+import { format12Hour, generate12HourOptions } from '../utils/timeFormat';
 
 export default function Shifts() {
   const [shifts, setShifts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editShift, setEditShift] = useState(null);
+
+  const timeOptions = React.useMemo(() => generate12HourOptions(), []);
 
   const [name, setName] = useState('');
   const [startTime, setStartTime] = useState('07:00');
@@ -178,30 +183,50 @@ export default function Shifts() {
               onChange={(e) => setName(e.target.value)}
               sx={{ mb: 2 }}
             />
-            <Grid container spacing={2}>
+            <Grid container spacing={2} sx={{ mt: 0.5 }}>
               <Grid item xs={6}>
-                <TextField
-                  margin="dense"
-                  label="Start Time"
-                  type="text"
-                  placeholder="07:00 AM"
-                  fullWidth
-                  required
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
+                <FormControl fullWidth margin="dense">
+                  <InputLabel id="start-time-label">Start Time</InputLabel>
+                  <Select
+                    labelId="start-time-label"
+                    label="Start Time"
+                    value={format12Hour(startTime)}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    MenuProps={{ PaperProps: { sx: { maxHeight: 220 } } }}
+                  >
+                    {(() => {
+                      const formatted = format12Hour(startTime);
+                      const opts = formatted && !timeOptions.includes(formatted) ? [formatted, ...timeOptions] : timeOptions;
+                      return opts.map((t) => (
+                        <MenuItem key={t} value={t}>
+                          {t}
+                        </MenuItem>
+                      ));
+                    })()}
+                  </Select>
+                </FormControl>
               </Grid>
               <Grid item xs={6}>
-                <TextField
-                  margin="dense"
-                  label="End Time"
-                  type="text"
-                  placeholder="03:30 PM"
-                  fullWidth
-                  required
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                />
+                <FormControl fullWidth margin="dense">
+                  <InputLabel id="end-time-label">End Time</InputLabel>
+                  <Select
+                    labelId="end-time-label"
+                    label="End Time"
+                    value={format12Hour(endTime)}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    MenuProps={{ PaperProps: { sx: { maxHeight: 220 } } }}
+                  >
+                    {(() => {
+                      const formatted = format12Hour(endTime);
+                      const opts = formatted && !timeOptions.includes(formatted) ? [formatted, ...timeOptions] : timeOptions;
+                      return opts.map((t) => (
+                        <MenuItem key={t} value={t}>
+                          {t}
+                        </MenuItem>
+                      ));
+                    })()}
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
           </DialogContent>
