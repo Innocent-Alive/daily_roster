@@ -24,6 +24,7 @@ import API from '../api/axiosInstance';
 import { useNotification } from '../context/NotificationContext';
 import { generateDutyRosterPdf } from '../utils/pdfGenerator';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import { format12Hour } from '../utils/timeFormat';
 
 import {
   Dialog,
@@ -217,7 +218,7 @@ export default function History() {
                     areaNames = row.area.name;
                   }
                   const shiftName = row.shift?.name || '-';
-                  const timing = row.inTime && row.outTime ? `${row.inTime} - ${row.outTime}` : '-';
+                  const timing = row.inTime && row.outTime ? `${format12Hour(row.inTime)} - ${format12Hour(row.outTime)}` : '-';
 
                   return (
                     <TableRow key={idx} hover>

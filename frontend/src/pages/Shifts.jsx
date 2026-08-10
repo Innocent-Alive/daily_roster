@@ -23,6 +23,7 @@ import API from '../api/axiosInstance';
 import { useNotification } from '../context/NotificationContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import { format12Hour } from '../utils/timeFormat';
 
 export default function Shifts() {
   const [shifts, setShifts] = useState([]);
@@ -144,8 +145,8 @@ export default function Shifts() {
                       {shift.name}
                     </Box>
                   </TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>{shift.startTime}</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>{shift.endTime}</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>{format12Hour(shift.startTime)}</TableCell>
+                  <TableCell sx={{ fontWeight: 600 }}>{format12Hour(shift.endTime)}</TableCell>
                   <TableCell align="right">
                     <IconButton color="primary" onClick={() => handleOpenDialog(shift)}>
                       <Edit fontSize="small" />
@@ -181,9 +182,9 @@ export default function Shifts() {
               <Grid item xs={6}>
                 <TextField
                   margin="dense"
-                  label="Start Time"
+                  label="Start Time (12h)"
                   type="text"
-                  placeholder="07:00"
+                  placeholder="07:00 AM"
                   fullWidth
                   required
                   value={startTime}
@@ -193,9 +194,9 @@ export default function Shifts() {
               <Grid item xs={6}>
                 <TextField
                   margin="dense"
-                  label="End Time"
+                  label="End Time (12h)"
                   type="text"
-                  placeholder="15:30"
+                  placeholder="03:30 PM"
                   fullWidth
                   required
                   value={endTime}

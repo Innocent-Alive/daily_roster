@@ -28,6 +28,7 @@ import {
 import dayjs from 'dayjs';
 import API from '../api/axiosInstance';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import { format12Hour } from '../utils/timeFormat';
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
@@ -370,7 +371,7 @@ export default function Dashboard() {
                       areaNames = row.area.name;
                     }
                     const shiftName = row.shift?.name || '-';
-                    const timing = row.inTime && row.outTime ? `${row.inTime} - ${row.outTime}` : '-';
+                    const timing = row.inTime && row.outTime ? `${format12Hour(row.inTime)} - ${format12Hour(row.outTime)}` : '-';
 
                     return (
                       <tr key={idx} style={{ borderBottom: '1px solid #E2E8F0' }}>

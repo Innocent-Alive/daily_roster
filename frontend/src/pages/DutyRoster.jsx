@@ -46,6 +46,7 @@ import API from '../api/axiosInstance';
 import { useNotification } from '../context/NotificationContext';
 import { generateDutyRosterPdf } from '../utils/pdfGenerator';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import { format12Hour } from '../utils/timeFormat';
 
 export default function DutyRoster() {
   const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
@@ -119,8 +120,8 @@ export default function DutyRoster() {
             } else if (value === 'WORKING' && shifts.length > 0) {
               const defaultShift = shifts[0];
               updated.shift = defaultShift._id;
-              updated.inTime = defaultShift.startTime;
-              updated.outTime = defaultShift.endTime;
+              updated.inTime = format12Hour(defaultShift.startTime);
+              updated.outTime = format12Hour(defaultShift.endTime);
               if (areas.length > 0) {
                 updated.areas = [areas[0]._id];
                 updated.area = areas[0]._id;
@@ -128,12 +129,12 @@ export default function DutyRoster() {
             }
           }
 
-          // Auto-fill times when Shift changes
+          // Auto-fill times in 12-hour format when Shift changes
           if (field === 'shift') {
             const selectedShiftObj = shifts.find((s) => s._id === value);
             if (selectedShiftObj) {
-              updated.inTime = selectedShiftObj.startTime;
-              updated.outTime = selectedShiftObj.endTime;
+              updated.inTime = format12Hour(selectedShiftObj.startTime);
+              updated.outTime = format12Hour(selectedShiftObj.endTime);
             }
           }
 
@@ -543,38 +544,34 @@ export default function DutyRoster() {
                         >
                           {shifts.map((s) => (
                             <MenuItem key={s._id} value={s._id}>
-                              {s.name} ({s.startTime} - {s.endTime})
+                              {s.name} ({format12Hour(s.startTime)} - {format12Hour(s.endTime)})
                             </MenuItem>
                           ))}
                         </Select>
                       </FormControl>
 
-                      {/* Timings */}
+                      {/* Timings (12-Hour AM/PM Format) */}
                       <Grid container spacing={1.5} sx={{ width: '100%', m: 0 }}>
                         <Grid item xs={6} sx={{ pl: '0!important' }}>
                           <TextField
                             fullWidth
                             size="small"
-                            label="In Time"
-                            type="time"
-                            value={item.inTime || ''}
+                            label="In Time (12h)"
+                            placeholder="07:00 AM"
+                            value={item.inTime ? format12Hour(item.inTime) : ''}
                             disabled={isOffOrAbsent}
                             onChange={(e) => handleFieldChange(empId, 'inTime', e.target.value)}
-                            InputLabelProps={{ shrink: true }}
-                            inputProps={{ step: 300 }}
                           />
                         </Grid>
                         <Grid item xs={6} sx={{ pr: '0!important' }}>
                           <TextField
                             fullWidth
                             size="small"
-                            label="Out Time"
-                            type="time"
-                            value={item.outTime || ''}
+                            label="Out Time (12h)"
+                            placeholder="03:30 PM"
+                            value={item.outTime ? format12Hour(item.outTime) : ''}
                             disabled={isOffOrAbsent}
                             onChange={(e) => handleFieldChange(empId, 'outTime', e.target.value)}
-                            InputLabelProps={{ shrink: true }}
-                            inputProps={{ step: 300 }}
                           />
                         </Grid>
                       </Grid>
@@ -685,18 +682,20 @@ export default function DutyRoster() {
                       <TextField
                         size="small"
                         disabled={isOffOrAbsent}
-                        value={item.inTime || ''}
+                        placeholder="07:00 AM"
+                        value={item.inTime ? format12Hour(item.inTime) : ''}
                         onChange={(e) => handleFieldChange(empId, 'inTime', e.target.value)}
-                        sx={{ width: 90 }}
+                        sx={{ width: 110 }}
                       />
                     </td>
                     <td style={{ padding: '12px' }}>
                       <TextField
                         size="small"
                         disabled={isOffOrAbsent}
-                        value={item.outTime || ''}
+                        placeholder="03:30 PM"
+                        value={item.outTime ? format12Hour(item.outTime) : ''}
                         onChange={(e) => handleFieldChange(empId, 'outTime', e.target.value)}
-                        sx={{ width: 90 }}
+                        sx={{ width: 110 }}
                       />
                     </td>
                     <td style={{ padding: '12px' }}>
