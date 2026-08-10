@@ -550,13 +550,13 @@ export default function DutyRoster() {
                         </Select>
                       </FormControl>
 
-                      {/* Timings (12-Hour AM/PM Format) */}
+                      {/* Timings */}
                       <Grid container spacing={1.5} sx={{ width: '100%', m: 0 }}>
                         <Grid item xs={6} sx={{ pl: '0!important' }}>
                           <TextField
                             fullWidth
                             size="small"
-                            label="In Time (12h)"
+                            label="In Time"
                             placeholder="07:00 AM"
                             value={item.inTime ? format12Hour(item.inTime) : ''}
                             disabled={isOffOrAbsent}
@@ -567,7 +567,7 @@ export default function DutyRoster() {
                           <TextField
                             fullWidth
                             size="small"
-                            label="Out Time (12h)"
+                            label="Out Time"
                             placeholder="03:30 PM"
                             value={item.outTime ? format12Hour(item.outTime) : ''}
                             disabled={isOffOrAbsent}

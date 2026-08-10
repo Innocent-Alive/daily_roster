@@ -182,7 +182,7 @@ export default function Shifts() {
               <Grid item xs={6}>
                 <TextField
                   margin="dense"
-                  label="Start Time (12h)"
+                  label="Start Time"
                   type="text"
                   placeholder="07:00 AM"
                   fullWidth
@@ -194,7 +194,7 @@ export default function Shifts() {
               <Grid item xs={6}>
                 <TextField
                   margin="dense"
-                  label="End Time (12h)"
+                  label="End Time"
                   type="text"
                   placeholder="03:30 PM"
                   fullWidth
