@@ -20,4 +20,6 @@ const areaSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+areaSchema.index({ isActive: 1 });
+
 module.exports = mongoose.model('Area', areaSchema);

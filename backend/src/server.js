@@ -23,9 +23,19 @@ app.use('/api/shifts', require('./routes/shiftRoutes'));
 app.use('/api/duty-assignments', require('./routes/dutyRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
+const https = require('https');
+const mongoose = require('mongoose');
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Duty Roster API running smoothly' });
+  const dbState = mongoose.connection.readyState;
+  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+  res.json({
+    status: 'OK',
+    message: 'Duty Roster API running smoothly',
+    database: states[dbState] || 'unknown',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // Error handling middleware
@@ -35,4 +45,16 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+
+  // Automated self-ping to prevent Render free instance from spinning down (sleeps after 15 min inactivity)
+  const renderUrl = process.env.RENDER_EXTERNAL_URL || 'https://daily-roster.onrender.com';
+  if (renderUrl) {
+    setInterval(() => {
+      https.get(`${renderUrl}/api/health`, (res) => {
+        console.log(`Keep-alive ping sent to ${renderUrl}/api/health - Status: ${res.statusCode}`);
+      }).on('error', (err) => {
+        console.warn(`Keep-alive ping warning: ${err.message}`);
+      });
+    }, 14 * 60 * 1000); // 14 minutes
+  }
 });

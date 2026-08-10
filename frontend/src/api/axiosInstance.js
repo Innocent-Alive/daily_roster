@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://daily-roster.onrender.com/api',
+  timeout: 30000, // 30-second timeout to gracefully handle Render free tier cold starts
 });
 
 // Attach Token

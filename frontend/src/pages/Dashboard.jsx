@@ -33,16 +33,23 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState(null);
 
   const navigate = useNavigate();
 
   const fetchDashboardStats = async (dateStr) => {
     setLoading(true);
+    setErrorMsg(null);
     try {
       const res = await API.get(`/dashboard/stats?date=${dateStr}`);
       setStats(res.data);
     } catch (error) {
       console.error('Failed to load dashboard stats:', error);
+      setErrorMsg(
+        error.code === 'ECONNABORTED'
+          ? 'Server is taking longer to respond (Free Tier Cold Start). Please click retry below.'
+          : error.response?.data?.message || 'Unable to connect to server. Please check your connection or retry.'
+      );
     } finally {
       setLoading(false);
     }
@@ -52,13 +59,34 @@ export default function Dashboard() {
     fetchDashboardStats(selectedDate);
   }, [selectedDate]);
 
-  if (loading || !stats) {
+  if (loading) {
     return (
       <Box>
         <Typography variant="h5" sx={{ fontWeight: 700, mb: 3 }}>
           Dashboard Overview
         </Typography>
         <LoadingSkeleton type="stats" />
+      </Box>
+    );
+  }
+
+  if (errorMsg || !stats) {
+    return (
+      <Box sx={{ p: 4, textAlign: 'center', bgcolor: 'background.paper', borderRadius: 3, mt: 2 }}>
+        <Typography variant="h6" color="error" sx={{ fontWeight: 700, mb: 1 }}>
+          {errorMsg || 'Failed to load dashboard statistics.'}
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Render free tier instances sleep after inactivity and take up to 45 seconds to wake up on initial request.
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => fetchDashboardStats(selectedDate)}
+          sx={{ borderRadius: 2, fontWeight: 700 }}
+        >
+          Retry Loading Dashboard
+        </Button>
       </Box>
     );
   }

@@ -31,4 +31,6 @@ const employeeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+employeeSchema.index({ isActive: 1 });
+
 module.exports = mongoose.model('Employee', employeeSchema);

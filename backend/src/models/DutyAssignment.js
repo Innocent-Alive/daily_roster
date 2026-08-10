@@ -45,6 +45,7 @@ const dutyAssignmentSchema = new mongoose.Schema(
 
 // Unique compound index: Only one assignment per employee per day
 dutyAssignmentSchema.index({ date: 1, employee: 1 }, { unique: true });
+dutyAssignmentSchema.index({ date: 1 });
 
 // Auto-delete roster history older than 30 days (30 days = 30 * 24 * 60 * 60 = 2592000 seconds)
 dutyAssignmentSchema.index({ createdAt: 1 }, { expireAfterSeconds: 2592000 });

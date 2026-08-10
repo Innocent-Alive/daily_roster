@@ -12,62 +12,69 @@ const getDutyAssignmentsByDate = async (req, res) => {
     return res.status(400).json({ message: 'Date parameter is required (YYYY-MM-DD)' });
   }
 
-  // Fetch active employees
-  const activeEmployees = await Employee.find({ isActive: true }).sort({ name: 1 });
-  const areas = await Area.find({ isActive: true }).sort({ name: 1 });
-  const shifts = await Shift.find({ isActive: true }).sort({ startTime: 1 });
+  try {
+    // Run all database fetches in parallel
+    const [activeEmployees, areas, shifts, existingAssignments] = await Promise.all([
+      Employee.find({ isActive: true }).sort({ name: 1 }).lean().exec(),
+      Area.find({ isActive: true }).sort({ name: 1 }).lean().exec(),
+      Shift.find({ isActive: true }).sort({ startTime: 1 }).lean().exec(),
+      DutyAssignment.find({ date })
+        .populate('employee', 'name employeeCode mobileNumber designation')
+        .populate('areas', 'name description')
+        .populate('shift', 'name startTime endTime')
+        .lean()
+        .exec(),
+    ]);
 
-  // Fetch existing assignments for target date
-  const existingAssignments = await DutyAssignment.find({ date })
-    .populate('employee')
-    .populate('areas')
-    .populate('shift');
+    const assignmentMap = new Map();
+    existingAssignments.forEach((item) => {
+      if (item.employee) {
+        const empIdStr = (item.employee._id || item.employee).toString();
+        assignmentMap.set(empIdStr, item);
+      }
+    });
 
-  const assignmentMap = new Map();
-  existingAssignments.forEach((item) => {
-    if (item.employee) {
-      assignmentMap.set(item.employee._id.toString(), item);
-    }
-  });
+    // Default shift and area defaults if available
+    const defaultArea = areas.length > 0 ? areas[0]._id : null;
+    const defaultShift = shifts.length > 0 ? shifts[0] : null;
 
-  // Default shift and area defaults if available
-  const defaultArea = areas.length > 0 ? areas[0]._id : null;
-  const defaultShift = shifts.length > 0 ? shifts[0] : null;
+    // Ensure every active employee has a roster object (saved or draft)
+    const rosterList = activeEmployees.map((emp) => {
+      const existing = assignmentMap.get(emp._id.toString());
+      if (existing) {
+        return {
+          ...existing,
+          areas: existing.areas || [],
+        };
+      }
 
-  // Ensure every active employee has a roster object (saved or draft)
-  const rosterList = activeEmployees.map((emp) => {
-    const existing = assignmentMap.get(emp._id.toString());
-    if (existing) {
-      const existingObj = existing.toObject ? existing.toObject() : existing;
+      // Return synthetic draft assignment for non-saved active employee
       return {
-        ...existingObj,
-        areas: existingObj.areas || [],
+        _id: `draft_${emp._id}`,
+        date,
+        employee: emp,
+        areas: defaultArea ? [defaultArea] : [],
+        shift: defaultShift ? defaultShift._id : null,
+        inTime: defaultShift ? defaultShift.startTime : '07:00',
+        outTime: defaultShift ? defaultShift.endTime : '15:30',
+        status: 'WORKING',
+        remarks: '',
+        isDraft: true,
       };
-    }
+    });
 
-    // Return synthetic draft assignment for non-saved active employee
-    return {
-      _id: `draft_${emp._id}`,
+    res.json({
       date,
-      employee: emp,
-      areas: defaultArea ? [defaultArea] : [],
-      shift: defaultShift ? defaultShift._id : null,
-      inTime: defaultShift ? defaultShift.startTime : '07:00',
-      outTime: defaultShift ? defaultShift.endTime : '15:30',
-      status: 'WORKING',
-      remarks: '',
-      isDraft: true,
-    };
-  });
-
-  res.json({
-    date,
-    roster: rosterList,
-    meta: {
-      totalEmployees: activeEmployees.length,
-      savedCount: existingAssignments.length,
-    },
-  });
+      roster: rosterList,
+      meta: {
+        totalEmployees: activeEmployees.length,
+        savedCount: existingAssignments.length,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching duty assignments:', error);
+    res.status(500).json({ message: 'Failed to fetch duty assignments', error: error.message });
+  }
 };
 
 // @desc    Bulk save / update duty roster for a date
