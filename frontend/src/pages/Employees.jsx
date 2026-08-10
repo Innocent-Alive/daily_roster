@@ -25,6 +25,10 @@ import {
   useMediaQuery,
   useTheme,
   Avatar,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Add, Edit, Delete, PersonAdd, Phone, Badge, Person } from '@mui/icons-material';
 import API from '../api/axiosInstance';
@@ -81,7 +85,7 @@ export default function Employees() {
       setEmployeeCode(`EMP${String(employees.length + 1).padStart(3, '0')}`);
       setName('');
       setMobileNumber('');
-      setDesignation('');
+      setDesignation('Room Attendant');
       setIsActive(true);
     }
     setDialogOpen(true);
@@ -293,15 +297,21 @@ export default function Employees() {
               onChange={(e) => setMobileNumber(e.target.value)}
               sx={{ mb: 2 }}
             />
-            <TextField
-              margin="dense"
-              label="Designation"
-              fullWidth
-              required
-              value={designation}
-              onChange={(e) => setDesignation(e.target.value)}
-              sx={{ mb: 2 }}
-            />
+            <FormControl fullWidth margin="dense" sx={{ mb: 2 }}>
+              <InputLabel id="designation-label" required>Designation</InputLabel>
+              <Select
+                labelId="designation-label"
+                label="Designation *"
+                required
+                value={designation}
+                onChange={(e) => setDesignation(e.target.value)}
+              >
+                <MenuItem value="Room Attendant">Room Attendant</MenuItem>
+                <MenuItem value="Supervisor">Supervisor</MenuItem>
+                <MenuItem value="Senior Supervisor">Senior Supervisor</MenuItem>
+                <MenuItem value="Executive HouseKeeper">Executive HouseKeeper</MenuItem>
+              </Select>
+            </FormControl>
             <FormControlLabel
               control={
                 <Switch
