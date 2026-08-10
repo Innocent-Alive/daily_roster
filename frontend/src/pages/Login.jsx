@@ -17,8 +17,8 @@ import { Hotel as HotelIcon, Email, Lock, Visibility, VisibilityOff } from '@mui
 import { AuthContext } from '../context/AuthContext';
 
 export default function Login() {
-  const [email, setEmail] = useState('arundas@gmail.com');
-  const [password, setPassword] = useState('arundas1971');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -134,7 +134,7 @@ export default function Login() {
                 '&:hover': { backgroundColor: '#0D47A1' },
               }}
             >
-              {loading ? 'Signing In...' : 'Login to Dashboard'}
+              {loading ? 'Logging in...' : 'Login'}
             </Button>
           </Box>
         </CardContent>
