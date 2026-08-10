@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -57,7 +57,7 @@ export default function DutyRoster() {
   const [saving, setSaving] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
 
-  const timeOptions = React.useMemo(() => generate12HourOptions(), []);
+  const timeOptions = useMemo(() => generate12HourOptions(), []);
 
   // Filters & Mobile Toggle
   const [searchQuery, setSearchQuery] = useState('');

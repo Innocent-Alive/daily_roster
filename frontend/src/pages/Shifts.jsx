@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -34,7 +35,7 @@ export default function Shifts() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editShift, setEditShift] = useState(null);
 
-  const timeOptions = React.useMemo(() => generate12HourOptions(), []);
+  const timeOptions = useMemo(() => generate12HourOptions(), []);
 
   const [name, setName] = useState('');
   const [startTime, setStartTime] = useState('07:00');
