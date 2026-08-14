@@ -29,6 +29,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'Hotel Mumbai House',
     },
+    logoUrl: {
+      type: String,
+      default: '',
+    },
   },
   { timestamps: true }
 );

@@ -1,7 +1,24 @@
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
-export const generateDutyRosterPdf = async (date, roster, filename = 'Duty_Roster.pdf', allAreas = []) => {
+const resolveImageUrl = (urlPath) => {
+  if (!urlPath) return '';
+  if (urlPath.startsWith('data:') || urlPath.startsWith('http://') || urlPath.startsWith('https://')) {
+    return urlPath;
+  }
+  const apiBase = import.meta.env.VITE_API_URL || 'https://daily-roster.onrender.com/api';
+  const serverOrigin = apiBase.replace(/\/api\/?$/, '');
+  return `${serverOrigin}${urlPath.startsWith('/') ? '' : '/'}${urlPath}`;
+};
+
+export const generateDutyRosterPdf = async (
+  date,
+  roster,
+  filename = 'Duty_Roster.pdf',
+  allAreas = [],
+  hotelName = '',
+  logoUrl = ''
+) => {
   // Create a visible temporary printable element on body
   const container = document.createElement('div');
   container.style.position = 'absolute';
@@ -16,6 +33,9 @@ export const generateDutyRosterPdf = async (date, roster, filename = 'Duty_Roste
   const dayjs = (await import('dayjs')).default;
   const formattedDate = date ? dayjs(date).format('DD MMMM YYYY') : '';
   const dayOfWeek = date ? dayjs(date).format('dddd') : '';
+
+  const displayHotelName = hotelName || 'HOTEL MUMBAI HOUSE';
+  const fullLogoUrl = resolveImageUrl(logoUrl);
 
   // Helper function to format 24h time string (07:00, 15:30) to 12h AM/PM (07:00 AM, 03:30 PM)
   const format12Hour = (timeStr) => {
@@ -95,7 +115,7 @@ export const generateDutyRosterPdf = async (date, roster, filename = 'Duty_Roste
     }
   });
 
-  const buildTableHtml = (title, items, titleColor = '#1565C0', headerBg = '#E3F2FD') => `
+  const buildTableHtml = (title, items, titleColor = '#2E7D32', headerBg = '#E8F5E9') => `
     <div style="margin-bottom: 20px;">
       <div style="background-color: ${titleColor}; color: #ffffff; padding: 6px 12px; font-weight: bold; font-size: 13px; text-transform: uppercase;">
         ${title}
@@ -103,10 +123,10 @@ export const generateDutyRosterPdf = async (date, roster, filename = 'Duty_Roste
       <table style="width: 100%; border-collapse: collapse; border: 1px solid ${titleColor}; font-size: 12px;">
         <thead>
           <tr style="background-color: ${headerBg}; text-align: left;">
-            <th style="padding: 8px; border-bottom: 2px solid ${titleColor}; width: 30%;">Area</th>
-            <th style="padding: 8px; border-bottom: 2px solid ${titleColor}; width: 40%;">Employee Name</th>
-            <th style="padding: 8px; border-bottom: 2px solid ${titleColor}; width: 15%; text-align: center;">In Time</th>
-            <th style="padding: 8px; border-bottom: 2px solid ${titleColor}; width: 15%; text-align: center;">Out Time</th>
+            <th style="padding: 8px; border-bottom: 2px solid ${titleColor}; width: 30%; color: #1B5E20;">Area</th>
+            <th style="padding: 8px; border-bottom: 2px solid ${titleColor}; width: 40%; color: #1B5E20;">Employee Name</th>
+            <th style="padding: 8px; border-bottom: 2px solid ${titleColor}; width: 15%; text-align: center; color: #1B5E20;">In Time</th>
+            <th style="padding: 8px; border-bottom: 2px solid ${titleColor}; width: 15%; text-align: center; color: #1B5E20;">Out Time</th>
           </tr>
         </thead>
         <tbody>
@@ -117,10 +137,10 @@ export const generateDutyRosterPdf = async (date, roster, filename = 'Duty_Roste
                   .map(
                     (row) => `
             <tr style="border-bottom: 1px solid #E0E0E0;">
-              <td style="padding: 8px; font-weight: bold;">${row.area}</td>
-              <td style="padding: 8px;">${row.employee}</td>
-              <td style="padding: 8px; text-align: center; font-weight: bold;">${row.inTime}</td>
-              <td style="padding: 8px; text-align: center; font-weight: bold;">${row.outTime}</td>
+              <td style="padding: 8px; font-weight: 800; color: #111111; font-size: 13px;">${row.area}</td>
+              <td style="padding: 8px; font-weight: 800; color: #111111; font-size: 14px;">${row.employee}</td>
+              <td style="padding: 8px; text-align: center; font-weight: 800; color: #111111; font-size: 14px;">${row.inTime}</td>
+              <td style="padding: 8px; text-align: center; font-weight: 800; color: #111111; font-size: 14px;">${row.outTime}</td>
             </tr>
           `
                   )
@@ -139,9 +159,9 @@ export const generateDutyRosterPdf = async (date, roster, filename = 'Duty_Roste
       <table style="width: 100%; border-collapse: collapse; border: 1px solid #D32F2F; font-size: 12px;">
         <thead>
           <tr style="background-color: #FFEBEE; text-align: left;">
-            <th style="padding: 8px; border-bottom: 2px solid #D32F2F; width: 45%;">Employee Name</th>
-            <th style="padding: 8px; border-bottom: 2px solid #D32F2F; width: 25%; text-align: center;">Status</th>
-            <th style="padding: 8px; border-bottom: 2px solid #D32F2F; width: 30%;">Remarks</th>
+            <th style="padding: 8px; border-bottom: 2px solid #D32F2F; width: 45%; color: #C62828;">Employee Name</th>
+            <th style="padding: 8px; border-bottom: 2px solid #D32F2F; width: 25%; text-align: center; color: #C62828;">Status</th>
+            <th style="padding: 8px; border-bottom: 2px solid #D32F2F; width: 30%; color: #C62828;">Remarks</th>
           </tr>
         </thead>
         <tbody>
@@ -152,7 +172,7 @@ export const generateDutyRosterPdf = async (date, roster, filename = 'Duty_Roste
                   .map(
                     (row) => `
             <tr style="border-bottom: 1px solid #E0E0E0;">
-              <td style="padding: 8px; font-weight: bold;">${row.employee}</td>
+              <td style="padding: 8px; font-weight: 800; color: #111111; font-size: 14px;">${row.employee}</td>
               <td style="padding: 8px; text-align: center;"><span style="background-color: ${row.status === 'OFF' ? '#ED6C02' : '#D32F2F'}; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 11px;">${row.status === 'OFF' ? 'WEEKLY OFF' : row.status}</span></td>
               <td style="padding: 8px; color: #555;">${row.remarks || '-'}</td>
             </tr>
@@ -166,12 +186,17 @@ export const generateDutyRosterPdf = async (date, roster, filename = 'Duty_Roste
   `;
 
   container.innerHTML = `
-    <div style="text-align: center; border-bottom: 3px solid #1565C0; padding-bottom: 12px; margin-bottom: 24px;">
-      <h1 style="margin: 0; color: #1565C0; font-size: 26px; text-transform: uppercase; font-weight: 800;">HOTEL MUMBAI HOUSE</h1>
-      <h2 style="margin: 4px 0 0 0; color: #333; font-size: 20px; font-weight: 700;">DAILY DUTY ROSTER</h2>
-      <div style="display: flex; justify-content: center; gap: 40px; margin-top: 14px; font-size: 17px; font-weight: 800; color: #333;">
-        <span>DATE: <span style="color: #1565C0;">${formattedDate}</span></span>
-        <span>DAY: <span style="color: #1565C0;">${dayOfWeek}</span></span>
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #2E7D32; padding-bottom: 14px; margin-bottom: 24px;">
+      <div style="display: flex; align-items: center; gap: 16px;">
+        ${fullLogoUrl ? `<img src="${fullLogoUrl}" style="max-height: 55px; max-width: 120px; object-fit: contain;" />` : ''}
+        <div>
+          <h1 style="margin: 0; color: #2E7D32; font-size: 24px; text-transform: uppercase; font-weight: 800; line-height: 1.1;">${displayHotelName}</h1>
+          <h2 style="margin: 3px 0 0 0; color: #333; font-size: 17px; font-weight: 700; letter-spacing: 0.5px;">DAILY DUTY ROSTER</h2>
+        </div>
+      </div>
+      <div style="text-align: right; font-size: 15px; font-weight: 800; color: #333;">
+        <div>DATE: <span style="color: #2E7D32;">${formattedDate}</span></div>
+        <div>DAY: <span style="color: #2E7D32;">${dayOfWeek}</span></div>
       </div>
     </div>
 

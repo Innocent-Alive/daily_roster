@@ -2,9 +2,19 @@ import React, { forwardRef } from 'react';
 import dayjs from 'dayjs';
 import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 
-const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai House' }, ref) => {
+const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai House', logoUrl = '' }, ref) => {
   const formattedDate = date ? dayjs(date).format('DD MMMM YYYY') : '';
   const dayOfWeek = date ? dayjs(date).format('dddd') : '';
+
+  const getFullLogo = (url) => {
+    if (!url) return '';
+    if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) return url;
+    const apiBase = import.meta.env.VITE_API_URL || 'https://daily-roster.onrender.com/api';
+    const serverOrigin = apiBase.replace(/\/api\/?$/, '');
+    return `${serverOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
+
+  const fullLogoSrc = getFullLogo(logoUrl);
 
   // Categorize assignments
   const morningList = [];
@@ -61,7 +71,7 @@ const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai Ho
     <Box sx={{ mb: 2.5 }}>
       <Box
         sx={{
-          backgroundColor: '#1565C0',
+          backgroundColor: '#2E7D32',
           color: '#ffffff',
           px: 2,
           py: 0.8,
@@ -74,14 +84,14 @@ const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai Ho
       >
         {title}
       </Box>
-      <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #1565C0', borderRadius: '0 0 4px 4px' }}>
+      <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #2E7D32', borderRadius: '0 0 4px 4px' }}>
         <Table size="small" sx={{ minWidth: '100%' }}>
-          <TableHead sx={{ backgroundColor: '#E3F2FD' }}>
+          <TableHead sx={{ backgroundColor: '#E8F5E9' }}>
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold', width: '25%', color: '#0D47A1', borderBottom: '2px solid #1565C0' }}>Area</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', width: '35%', color: '#0D47A1', borderBottom: '2px solid #1565C0' }}>Employee Name</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', width: '18%', textAlign: 'center', color: '#0D47A1', borderBottom: '2px solid #1565C0' }}>In Time</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', width: '18%', textAlign: 'center', color: '#0D47A1', borderBottom: '2px solid #1565C0' }}>Out Time</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', width: '25%', color: '#1B5E20', borderBottom: '2px solid #2E7D32' }}>Area</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', width: '35%', color: '#1B5E20', borderBottom: '2px solid #2E7D32' }}>Employee Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', width: '18%', textAlign: 'center', color: '#1B5E20', borderBottom: '2px solid #2E7D32' }}>In Time</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', width: '18%', textAlign: 'center', color: '#1B5E20', borderBottom: '2px solid #2E7D32' }}>Out Time</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -94,10 +104,10 @@ const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai Ho
             ) : (
               items.map((row, idx) => (
                 <TableRow key={idx} sx={{ '&:nth-of-type(even)': { backgroundColor: '#F8FAFC' } }}>
-                  <TableCell sx={{ fontWeight: 600, color: '#333' }}>{row.area}</TableCell>
-                  <TableCell sx={{ color: '#111' }}>{row.employee}</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 600 }}>{row.inTime}</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 600 }}>{row.outTime}</TableCell>
+                  <TableCell sx={{ fontWeight: 800, color: '#111', fontSize: '13px' }}>{row.area}</TableCell>
+                  <TableCell sx={{ fontWeight: 800, color: '#111', fontSize: '14px' }}>{row.employee}</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 800, color: '#111', fontSize: '14px' }}>{row.inTime}</TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 800, color: '#111', fontSize: '14px' }}>{row.outTime}</TableCell>
                 </TableRow>
               ))
             )}
@@ -125,19 +135,31 @@ const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai Ho
       }}
     >
       {/* Header */}
-      <Box sx={{ borderBottom: '3px solid #1565C0', pb: 2, mb: 3, textAlign: 'center' }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, color: '#1565C0', textTransform: 'uppercase', letterSpacing: 1 }}>
-          {hotelName}
-        </Typography>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#333', mt: 0.5 }}>
-          DAILY DUTY ROSTER
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4, mt: 1.5 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#555' }}>
-            DATE: <span style={{ color: '#1565C0' }}>{formattedDate}</span>
+      <Box sx={{ borderBottom: '3px solid #2E7D32', pb: 2, mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {fullLogoSrc && (
+            <Box
+              component="img"
+              src={fullLogoSrc}
+              alt="Logo"
+              sx={{ maxHeight: 55, maxWidth: 120, objectFit: 'contain' }}
+            />
+          )}
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 800, color: '#2E7D32', textTransform: 'uppercase', letterSpacing: 0.5, lineHeight: 1.1 }}>
+              {hotelName}
+            </Typography>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#333', mt: 0.3 }}>
+              DAILY DUTY ROSTER
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{ textAlign: 'right' }}>
+          <Typography variant="body2" sx={{ fontWeight: 800, color: '#333' }}>
+            DATE: <span style={{ color: '#2E7D32' }}>{formattedDate}</span>
           </Typography>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#555' }}>
-            DAY: <span style={{ color: '#1565C0' }}>{dayOfWeek}</span>
+          <Typography variant="body2" sx={{ fontWeight: 800, color: '#333' }}>
+            DAY: <span style={{ color: '#2E7D32' }}>{dayOfWeek}</span>
           </Typography>
         </Box>
       </Box>
@@ -183,7 +205,7 @@ const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai Ho
               ) : (
                 offLeaveList.map((row, idx) => (
                   <TableRow key={idx} sx={{ '&:nth-of-type(even)': { backgroundColor: '#FFF5F5' } }}>
-                    <TableCell sx={{ fontWeight: 600 }}>{row.employee}</TableCell>
+                    <TableCell sx={{ fontWeight: 800, fontSize: '14px', color: '#111' }}>{row.employee}</TableCell>
                     <TableCell align="center">
                       <span
                         style={{

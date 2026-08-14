@@ -21,6 +21,7 @@ const loginUser = async (req, res) => {
       email: user.email,
       role: user.role,
       hotelName: user.hotelName,
+      logoUrl: user.logoUrl || '',
       token: generateToken(user._id),
     });
   } else {
@@ -42,7 +43,10 @@ const updateProfile = async (req, res) => {
 
   if (user) {
     user.name = req.body.name || user.name;
-    user.hotelName = req.body.hotelName || user.hotelName;
+    user.hotelName = req.body.hotelName !== undefined ? req.body.hotelName : user.hotelName;
+    if (req.body.logoUrl !== undefined) {
+      user.logoUrl = req.body.logoUrl;
+    }
 
     if (req.body.password) {
       user.password = req.body.password;
@@ -55,6 +59,7 @@ const updateProfile = async (req, res) => {
       email: updatedUser.email,
       role: updatedUser.role,
       hotelName: updatedUser.hotelName,
+      logoUrl: updatedUser.logoUrl || '',
       token: generateToken(updatedUser._id),
     });
   } else {
@@ -62,4 +67,39 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, getMe, updateProfile };
+// @desc    Upload hotel logo image
+// @route   POST /api/auth/upload-logo
+const uploadLogo = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const relativePath = `/uploads/${req.file.filename}`;
+    user.logoUrl = relativePath;
+    await user.save();
+
+    res.json({
+      message: 'Logo uploaded successfully',
+      logoUrl: relativePath,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        hotelName: user.hotelName,
+        logoUrl: relativePath,
+      },
+    });
+  } catch (error) {
+    console.error('Logo upload error:', error);
+    res.status(500).json({ message: 'Failed to upload logo', error: error.message });
+  }
+};
+
+module.exports = { loginUser, getMe, updateProfile, uploadLogo };

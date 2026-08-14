@@ -44,11 +44,13 @@ import ListItemText from '@mui/material/ListItemText';
 import dayjs from 'dayjs';
 import API from '../api/axiosInstance';
 import { useNotification } from '../context/NotificationContext';
+import { AuthContext } from '../context/AuthContext';
 import { generateDutyRosterPdf } from '../utils/pdfGenerator';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import { format12Hour, generate12HourOptions } from '../utils/timeFormat';
 
 export default function DutyRoster() {
+  const { user } = React.useContext(AuthContext);
   const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
   const [roster, setRoster] = useState([]);
   const [areas, setAreas] = useState([]);
@@ -203,7 +205,14 @@ export default function DutyRoster() {
     setGeneratingPdf(true);
     try {
       const filename = `Duty_Roster_${selectedDate}.pdf`;
-      await generateDutyRosterPdf(selectedDate, roster, filename, areas);
+      await generateDutyRosterPdf(
+        selectedDate,
+        roster,
+        filename,
+        areas,
+        user?.hotelName || 'Hotel Mumbai House',
+        user?.logoUrl || ''
+      );
       showNotification('PDF Duty Roster downloaded successfully!');
     } catch (error) {
       console.error('PDF Generation Error:', error);
@@ -216,7 +225,8 @@ export default function DutyRoster() {
   // WhatsApp Share Message Generator
   const handleWhatsAppShare = () => {
     const formattedDate = dayjs(selectedDate).format('DD MMM YYYY (dddd)');
-    let msg = `*HOTEL MUMBAI HOUSE*\n*DAILY DUTY ROSTER - ${formattedDate}*\n\n`;
+    const currentHotel = (user?.hotelName || 'Hotel Mumbai House').toUpperCase();
+    let msg = `*${currentHotel}*\n*DAILY DUTY ROSTER - ${formattedDate}*\n\n`;
 
     const workingStaff = roster.filter((r) => r.status === 'WORKING');
     const offStaff = roster.filter((r) => r.status === 'OFF' || r.status === 'ABSENT');

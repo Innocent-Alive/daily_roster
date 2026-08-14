@@ -22,6 +22,7 @@ import {
 import dayjs from 'dayjs';
 import API from '../api/axiosInstance';
 import { useNotification } from '../context/NotificationContext';
+import { AuthContext } from '../context/AuthContext';
 import { generateDutyRosterPdf } from '../utils/pdfGenerator';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import { format12Hour } from '../utils/timeFormat';
@@ -39,6 +40,7 @@ import {
 } from '@mui/material';
 
 export default function History() {
+  const { user } = useContext(AuthContext);
   const [historyList, setHistoryList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(null);
@@ -90,7 +92,14 @@ export default function History() {
       ]);
       const targetRoster = rosterRes.data.roster || [];
       const areasList = areaRes.data || [];
-      await generateDutyRosterPdf(dateStr, targetRoster, `Duty_Roster_${dateStr}.pdf`, areasList);
+      await generateDutyRosterPdf(
+        dateStr,
+        targetRoster,
+        `Duty_Roster_${dateStr}.pdf`,
+        areasList,
+        user?.hotelName || 'Hotel Mumbai House',
+        user?.logoUrl || ''
+      );
       showNotification(`PDF for ${dateStr} downloaded successfully!`);
     } catch (error) {
       console.error('Download PDF error:', error);
