@@ -211,6 +211,8 @@ export default function DutyRoster() {
         filename,
         areas,
         user?.hotelName || 'Hotel Mumbai House',
+        user?.logo || '',
+        user?.logoType || '',
         user?.logoUrl || ''
       );
       showNotification('PDF Duty Roster downloaded successfully!');

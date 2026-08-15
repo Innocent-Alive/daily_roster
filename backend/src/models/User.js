@@ -29,8 +29,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: 'Hotel Mumbai House',
     },
-    logoUrl: {
+    logo: {
       type: String,
+      default: '',
+    },
+    logoType: {
+      type: String,
+      enum: ['', 'svg', 'image'],
       default: '',
     },
   },

@@ -17,6 +17,8 @@ export const generateDutyRosterPdf = async (
   filename = 'Duty_Roster.pdf',
   allAreas = [],
   hotelName = '',
+  logo = '',
+  logoType = '',
   logoUrl = ''
 ) => {
   // Create a visible temporary printable element on body
@@ -35,7 +37,16 @@ export const generateDutyRosterPdf = async (
   const dayOfWeek = date ? dayjs(date).format('dddd') : '';
 
   const displayHotelName = hotelName || 'HOTEL MUMBAI HOUSE';
-  const fullLogoUrl = resolveImageUrl(logoUrl);
+  const effectiveLogo = logo || logoUrl;
+  const isSvgLogo = logoType === 'svg' || (typeof effectiveLogo === 'string' && effectiveLogo.trim().startsWith('<svg'));
+
+  let logoHtml = '';
+  if (isSvgLogo) {
+    logoHtml = `<div style="max-height: 55px; max-width: 120px; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 0; line-height: 0;">${effectiveLogo}</div>`;
+  } else if (effectiveLogo) {
+    const fullImgSrc = resolveImageUrl(effectiveLogo);
+    logoHtml = `<img src="${fullImgSrc}" style="max-height: 55px; max-width: 120px; object-fit: contain;" />`;
+  }
 
   // Helper function to format 24h time string (07:00, 15:30) to 12h AM/PM (07:00 AM, 03:30 PM)
   const format12Hour = (timeStr) => {
@@ -188,7 +199,7 @@ export const generateDutyRosterPdf = async (
   container.innerHTML = `
     <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #2E7D32; padding-bottom: 14px; margin-bottom: 24px;">
       <div style="display: flex; align-items: center; gap: 16px;">
-        ${fullLogoUrl ? `<img src="${fullLogoUrl}" style="max-height: 55px; max-width: 120px; object-fit: contain;" />` : ''}
+        ${logoHtml}
         <div>
           <h1 style="margin: 0; color: #2E7D32; font-size: 24px; text-transform: uppercase; font-weight: 800; line-height: 1.1;">${displayHotelName}</h1>
           <h2 style="margin: 3px 0 0 0; color: #333; font-size: 17px; font-weight: 700; letter-spacing: 0.5px;">DAILY DUTY ROSTER</h2>

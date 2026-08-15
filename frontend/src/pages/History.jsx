@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {
   Box,
   Typography,
@@ -98,6 +98,8 @@ export default function History() {
         `Duty_Roster_${dateStr}.pdf`,
         areasList,
         user?.hotelName || 'Hotel Mumbai House',
+        user?.logo || '',
+        user?.logoType || '',
         user?.logoUrl || ''
       );
       showNotification(`PDF for ${dateStr} downloaded successfully!`);

@@ -33,10 +33,10 @@ export default function Settings() {
 
   const [name, setName] = useState(user?.name || '');
   const [hotelName, setHotelName] = useState(user?.hotelName || 'Hotel Mumbai House');
-  const [logoUrl, setLogoUrl] = useState(user?.logoUrl || '');
+  const [logo, setLogo] = useState(user?.logo || '');
+  const [logoType, setLogoType] = useState(user?.logoType || '');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const fileInputRef = useRef(null);
 
@@ -44,12 +44,12 @@ export default function Settings() {
     e.preventDefault();
     setLoading(true);
     try {
-      const payload = { name, hotelName, logoUrl };
+      const payload = { name, hotelName, logo, logoType };
       if (password) payload.password = password;
 
       const res = await API.put('/auth/profile', payload);
       updateUserProfile(res.data);
-      showNotification('Settings & Branding updated successfully');
+      showNotification('Settings & Hotel Logo updated successfully');
       setPassword('');
     } catch (error) {
       showNotification(error.response?.data?.message || 'Failed to update settings', 'error');
@@ -58,48 +58,52 @@ export default function Settings() {
     }
   };
 
-  const handleLogoUpload = async (e) => {
+  const handleLogoSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      showNotification('Please select a valid image file', 'error');
+    if (!file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.svg')) {
+      showNotification('Please select a valid image or SVG file', 'error');
       return;
     }
 
-    setUploadingLogo(true);
-    const formData = new FormData();
-    formData.append('logo', file);
+    const isSvg = file.type === 'image/svg+xml' || file.name.toLowerCase().endsWith('.svg');
+    const reader = new FileReader();
 
-    try {
-      const res = await API.post('/auth/upload-logo', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setLogoUrl(res.data.logoUrl);
-      if (res.data.user) {
-        updateUserProfile(res.data.user);
-      }
-      showNotification('Hotel logo uploaded successfully!');
-    } catch (error) {
-      console.error('Logo upload error:', error);
-      showNotification(error.response?.data?.message || 'Failed to upload logo', 'error');
-    } finally {
-      setUploadingLogo(false);
+    if (isSvg) {
+      reader.onload = (event) => {
+        const svgContent = event.target?.result;
+        if (svgContent && typeof svgContent === 'string') {
+          setLogo(svgContent);
+          setLogoType('svg');
+          showNotification('SVG logo loaded. Click "Save Settings" to apply.');
+        }
+      };
+      reader.readAsText(file);
+    } else {
+      reader.onload = (event) => {
+        const base64Data = event.target?.result;
+        if (base64Data && typeof base64Data === 'string') {
+          setLogo(base64Data);
+          setLogoType('image');
+          showNotification('Image logo loaded as Base64. Click "Save Settings" to apply.');
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleRemoveLogo = async () => {
-    setLogoUrl('');
+    setLogo('');
+    setLogoType('');
     try {
-      const res = await API.put('/auth/profile', { name, hotelName, logoUrl: '' });
+      const res = await API.put('/auth/profile', { name, hotelName, logo: '', logoType: '' });
       updateUserProfile(res.data);
       showNotification('Hotel logo removed');
     } catch (error) {
       showNotification('Failed to update settings', 'error');
     }
   };
-
-  const fullLogoSrc = getImageUrl(logoUrl);
 
   return (
     <Box sx={{ width: '100%', pb: { xs: 8, md: 2 } }}>
@@ -108,7 +112,7 @@ export default function Settings() {
           Settings & Hotel Branding
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Configure hotel name, custom logo branding, and account settings for generated PDFs and reports.
+          Configure hotel name, custom logo branding (SVG / Base64 stored in MongoDB), and account settings.
         </Typography>
       </Box>
 
@@ -120,7 +124,7 @@ export default function Settings() {
               <Hotel color="primary" /> Hotel Logo Branding
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Upload your official hotel/resort logo. It will be printed side-by-side with your hotel name on generated PDFs.
+              Upload your official SVG or image logo. Stored directly in database — fast, light, and 100% permanent across redeploys!
             </Typography>
 
             <Box
@@ -132,35 +136,51 @@ export default function Settings() {
                 justifyContent: 'center',
                 p: 3,
                 border: '2px dashed',
-                borderColor: logoUrl ? 'primary.main' : 'divider',
+                borderColor: logo ? 'primary.main' : 'divider',
                 borderRadius: 3,
                 bgcolor: 'background.default',
                 minHeight: 200,
                 textAlign: 'center',
               }}
             >
-              {uploadingLogo ? (
-                <Box sx={{ textAlign: 'center' }}>
-                  <CircularProgress size={40} sx={{ mb: 1 }} />
-                  <Typography variant="body2" color="text.secondary">Uploading logo...</Typography>
-                </Box>
-              ) : logoUrl ? (
+              {logo ? (
                 <Box sx={{ textAlign: 'center', width: '100%' }}>
-                  <Box
-                    component="img"
-                    src={fullLogoSrc}
-                    alt="Hotel Logo"
-                    sx={{
-                      maxHeight: 120,
-                      maxWidth: '100%',
-                      objectFit: 'contain',
-                      borderRadius: 1,
-                      mb: 2,
-                      boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
-                    }}
-                  />
+                  {logoType === 'svg' ? (
+                    <Box
+                      dangerouslySetInnerHTML={{ __html: logo }}
+                      sx={{
+                        maxHeight: 120,
+                        maxWidth: '100%',
+                        mb: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        mx: 'auto',
+                        '& svg': {
+                          maxHeight: '110px',
+                          maxWidth: '100%',
+                          height: 'auto',
+                          width: 'auto',
+                        },
+                      }}
+                    />
+                  ) : (
+                    <Box
+                      component="img"
+                      src={logo.startsWith('data:') || logo.startsWith('http') ? logo : getImageUrl(logo)}
+                      alt="Hotel Logo"
+                      sx={{
+                        maxHeight: 120,
+                        maxWidth: '100%',
+                        objectFit: 'contain',
+                        borderRadius: 1,
+                        mb: 2,
+                        boxShadow: '0 2px 10px rgba(0,0,0,0.08)',
+                      }}
+                    />
+                  )}
                   <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 2 }}>
-                    Relative Path: <code>{logoUrl}</code>
+                    Type: <strong>{logoType === 'svg' ? 'Raw SVG Markup' : 'Base64 Encoded Image'}</strong>
                   </Typography>
                 </Box>
               ) : (
@@ -172,7 +192,7 @@ export default function Settings() {
                     No Logo Uploaded
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    PNG, JPG, SVG up to 5MB supported
+                    SVG (recommended), PNG, JPG supported
                   </Typography>
                 </Box>
               )}
@@ -180,8 +200,8 @@ export default function Settings() {
               <input
                 type="file"
                 ref={fileInputRef}
-                accept="image/*"
-                onChange={handleLogoUpload}
+                accept="image/*,.svg"
+                onChange={handleLogoSelect}
                 style={{ display: 'none' }}
               />
 
@@ -190,14 +210,13 @@ export default function Settings() {
                   variant="outlined"
                   startIcon={<CloudUpload />}
                   onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingLogo}
                   sx={{ borderRadius: 2, fontWeight: 700 }}
                 >
-                  {logoUrl ? 'Change Logo' : 'Upload Logo'}
+                  {logo ? 'Change Logo' : 'Upload Logo'}
                 </Button>
 
-                {logoUrl && (
-                  <IconButton color="error" onClick={handleRemoveLogo} disabled={uploadingLogo}>
+                {logo && (
+                  <IconButton color="error" onClick={handleRemoveLogo}>
                     <Delete />
                   </IconButton>
                 )}

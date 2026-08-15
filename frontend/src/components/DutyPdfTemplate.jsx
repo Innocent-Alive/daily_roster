@@ -2,11 +2,14 @@ import React, { forwardRef } from 'react';
 import dayjs from 'dayjs';
 import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 
-const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai House', logoUrl = '' }, ref) => {
+const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai House', logo = '', logoType = '', logoUrl = '' }, ref) => {
   const formattedDate = date ? dayjs(date).format('DD MMMM YYYY') : '';
   const dayOfWeek = date ? dayjs(date).format('dddd') : '';
 
-  const getFullLogo = (url) => {
+  const effectiveLogo = logo || logoUrl;
+  const isSvg = logoType === 'svg' || (typeof effectiveLogo === 'string' && effectiveLogo.trim().startsWith('<svg'));
+
+  const getFullLogoSrc = (url) => {
     if (!url) return '';
     if (url.startsWith('data:') || url.startsWith('http://') || url.startsWith('https://')) return url;
     const apiBase = import.meta.env.VITE_API_URL || 'https://daily-roster.onrender.com/api';
@@ -14,7 +17,7 @@ const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai Ho
     return `${serverOrigin}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
-  const fullLogoSrc = getFullLogo(logoUrl);
+  const fullLogoSrc = isSvg ? '' : getFullLogoSrc(effectiveLogo);
 
   // Categorize assignments
   const morningList = [];
@@ -137,14 +140,32 @@ const DutyPdfTemplate = forwardRef(({ date, roster, hotelName = 'Hotel Mumbai Ho
       {/* Header */}
       <Box sx={{ borderBottom: '3px solid #2E7D32', pb: 2, mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {fullLogoSrc && (
+          {isSvg ? (
+            <Box
+              dangerouslySetInnerHTML={{ __html: effectiveLogo }}
+              sx={{
+                maxHeight: 55,
+                maxWidth: 120,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                '& svg': {
+                  maxHeight: '55px',
+                  maxWidth: '120px',
+                  height: 'auto',
+                  width: 'auto',
+                },
+              }}
+            />
+          ) : fullLogoSrc ? (
             <Box
               component="img"
               src={fullLogoSrc}
               alt="Logo"
               sx={{ maxHeight: 55, maxWidth: 120, objectFit: 'contain' }}
             />
-          )}
+          ) : null}
           <Box>
             <Typography variant="h5" sx={{ fontWeight: 800, color: '#2E7D32', textTransform: 'uppercase', letterSpacing: 0.5, lineHeight: 1.1 }}>
               {hotelName}
